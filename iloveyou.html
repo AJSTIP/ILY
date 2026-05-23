@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You ❤️</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0b0b0b;
+            color: #ffffff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            background: #121212;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 1px solid #222;
+            max-width: 90%;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .equation {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 25px;
+        }
+
+        /* Original Grid Background Styling */
+        .canvas-container {
+            position: relative;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        /* Axis Lines */
+        .canvas-container::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 0; right: 0;
+            height: 1px; background: rgba(255,255,255,0.2);
+            z-index: 1;
+        }
+        .canvas-container::after {
+            content: '';
+            position: absolute;
+            left: 50%; top: 0; bottom: 0;
+            width: 1px; background: rgba(255,255,255,0.2);
+            z-index: 1;
+        }
+
+        canvas {
+            display: block;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Play Overlay Button with Yellow Glow */
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(18, 18, 18, 0.95);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: opacity 0.5s ease;
+        }
+
+        .start-btn {
+            background: transparent;
+            border: 2px solid #ffd700;
+            color: #ffffff;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-family: 'Courier New', Courier, monospace;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .start-btn:active {
+            background: #ffd700;
+            color: #000000;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="overlay" class="overlay">
+            <button class="start-btn" onclick="startExperience()">Open Message 💛</button>
+        </div>
+
+        <h1>No Words Needed to Say<br>I Love You</h1>
+        <div class="equation">x = -√2·sin³(t), &nbsp; y = 2·cos(t) - cos²(t) - cos³(t)</div>
+        
+        <div class="canvas-container">
+            <canvas id="heartCanvas" width="320" height="320"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('heartCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        const width = canvas.width;
+        const height = canvas.height;
+        const centerX = width / 2;
+        const centerY = height / 2 - 15; 
+        const scale = 70; 
+
+        let t = -Math.PI; 
+        const speed = 0.013; // Your smooth, slower drawing speed
+
+        // Yellow Color Scheme
+        ctx.strokeStyle = '#ffd700'; 
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.15)'; 
+
+        let points = [];
+
+        // Synthesizer Audio Engine
+        function playMelody() {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const audioCtx = new AudioContext();
+
+            const notes = [
+                { f: 293.66, d: 0.35 }, { f: 349.23, d: 0.35 }, { f: 440.00, d: 0.35 }, { f: 523.25, d: 0.60 }, 
+                { f: 466.16, d: 0.35 }, { f: 392.00, d: 0.35 }, { f: 349.23, d: 0.35 }, { f: 440.00, d: 0.60 }, 
+                { f: 392.00, d: 0.35 }, { f: 329.63, d: 0.35 }, { f: 293.66, d: 0.35 }, { f: 392.00, d: 0.60 }, 
+                { f: 349.23, d: 0.35 }, { f: 293.66, d: 0.35 }, { f: 261.63, d: 0.35 }, { f: 349.23, d: 0.80 }
+            ];
+
+            let time = audioCtx.currentTime + 0.1;
+
+            notes.forEach(note => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'triangle'; 
+                osc.frequency.value = note.f;
+
+                gain.gain.setValueAtTime(0, time);
+                gain.gain.linearRampToValueAtTime(0.15, time + 0.03); 
+                gain.gain.setValueAtTime(0.15, time + note.d - 0.05);
+                gain.gain.linearRampToValueAtTime(0, time + note.d);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(time);
+                osc.stop(time + note.d);
+
+                time += note.d + 0.05; 
+            });
+        }
+
+        // Main Drawing Loop
+        function draw() {
+            if (t <= Math.PI) {
+                const x = -Math.sqrt(2) * Math.pow(Math.sin(t), 3);
+                const y = 2 * Math.cos(t) - Math.pow(Math.cos(t), 2) - Math.pow(Math.cos(t), 3);
+
+                const pixelX = centerX + x * scale;
+                const pixelY = centerY - y * scale;
+
+                points.push({x: pixelX, y: pixelY});
+
+                ctx.clearRect(0, 0, width, height);
+                
+                // Draw Yellow Fill
+                if (points.length > 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(points[0].x, points[0].y);
+                    for (let i = 1; i < points.length; i++) {
+                        ctx.lineTo(points[i].x, points[i].y);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                // Draw Yellow Line
+                ctx.beginPath();
+                ctx.moveTo(points[0].x, points[0].y);
+                for (let i = 1; i < points.length; i++) {
+                    ctx.lineTo(points[i].x, points[i].y);
+                }
+                ctx.stroke();
+
+                t += speed;
+                requestAnimationFrame(draw);
+            }
+        }
+
+        function startExperience() {
+            document.getElementById('overlay').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('overlay').style.display = 'none';
+            }, 500);
+            
+            playMelody();
+            draw();
+        }
+    </script>
+</body>
+</html>
